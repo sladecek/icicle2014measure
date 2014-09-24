@@ -48,6 +48,6 @@ const char* name = "Box Example";
 
 
  /// Wait until user press some key
- waitKey(0);
+
  return 0;
 }
