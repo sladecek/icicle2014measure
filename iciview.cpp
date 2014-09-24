@@ -1,28 +1,53 @@
+
 #include <stdio.h>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
+
+#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
 
 using namespace cv;
 
-int main(int argc, char** argv )
+/// Global Variables
+const int alpha_slider_max = 100;
+int alpha_slider;
+double alpha;
+double beta;
+
+/// Matrices to store images
+Mat image;
+
+
+// Implement mouse callback
+void my_mouse_callback( int event, int x, int y, int flags, void* param ){
+
+
+	switch( event ){
+
+		case CV_EVENT_LBUTTONDOWN:
+		  printf("%d %d\n", y, x);
+			break;
+
+	}
+}
+
+
+int main( int argc, char** argv )
 {
-    if ( argc != 2 )
-    {
-        printf("usage: DisplayImage.out <Image_Path>\n");
-        return -1;
-    }
+ /// Read image ( same size, same type )
+ image = imread("test.jpg");
+ if( !image.data ) { printf("Error loading image \n"); return -1; }
 
-    Mat image;
-    image = imread( argv[1], 1 );
+const char* name = "Box Example";
 
-    if ( !image.data )
-    {
-        printf("No image data \n");
-        return -1;
-    }
-    namedWindow("Display Image", WINDOW_AUTOSIZE );
+
+	cvNamedWindow( name , WINDOW_AUTOSIZE );
     imshow("Display Image", image);
+	// Set up the callback
+    cvSetMouseCallback( name, my_mouse_callback, NULL);
 
     waitKey(0);
 
-    return 0;
+
+ /// Wait until user press some key
+ waitKey(0);
+ return 0;
 }
