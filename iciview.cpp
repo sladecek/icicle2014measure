@@ -1,53 +1,54 @@
+#include "opencv2/highgui/highgui.hpp"
+#include <iostream>
 
-#include <stdio.h>
-#include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
-
-#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
-
+using namespace std;
 using namespace cv;
 
-/// Global Variables
-const int alpha_slider_max = 100;
-int alpha_slider;
-double alpha;
-double beta;
+void CallBackFunc(int event, int x, int y, int flags, void* userdata)
+{
+     if  ( event == EVENT_LBUTTONDOWN )
+     {
+          cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+     }
+     else if  ( event == EVENT_RBUTTONDOWN )
+     {
+          cout << "Right button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+     }
+     else if  ( event == EVENT_MBUTTONDOWN )
+     {
+          cout << "Middle button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+     }
+     else if ( event == EVENT_MOUSEMOVE )
+     {
+          cout << "Mouse move over the window - position (" << x << ", " << y << ")" << endl;
 
-/// Matrices to store images
-Mat image;
-
-
-// Implement mouse callback
-void my_mouse_callback( int event, int x, int y, int flags, void* param ){
-
-
-	switch( event ){
-
-		case CV_EVENT_LBUTTONDOWN:
-		  printf("%d %d\n", y, x);
-			break;
-
-	}
+     }
 }
 
-
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
- /// Read image ( same size, same type )
- image = imread("test.jpg");
- if( !image.data ) { printf("Error loading image \n"); return -1; }
+     // Read image from file 
+     Mat img = imread("test.jpg");
 
-const char* name = "Box Example";
+      //if fail to read the image
+     if ( img.empty() ) 
+     { 
+          cout << "Error loading the image" << endl;
+          return -1; 
+     }
 
+      //Create a window
+     namedWindow("My Window", 1);
 
-	cvNamedWindow( name , WINDOW_AUTOSIZE );
-    imshow("Display Image", image);
-	// Set up the callback
-    cvSetMouseCallback( name, my_mouse_callback, NULL);
+      //set the callback function for any mouse event
+     setMouseCallback("My Window", CallBackFunc, NULL);
 
-    waitKey(0);
+      //show the image
+     imshow("My Window", img);
 
+      // Wait until user press some key
+     waitKey(0);
 
- /// Wait until user press some key
- waitKey(0);
- return 0;
+      return 0;
+
 }
