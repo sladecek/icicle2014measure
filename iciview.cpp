@@ -11,19 +11,6 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
      {
           cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
      }
-     else if  ( event == EVENT_RBUTTONDOWN )
-     {
-          cout << "Right button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-     }
-     else if  ( event == EVENT_MBUTTONDOWN )
-     {
-          cout << "Middle button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-     }
-     else if ( event == EVENT_MOUSEMOVE )
-     {
-          cout << "Mouse move over the window - position (" << x << ", " << y << ")" << endl;
-
-     }
 }
 
 int main(int argc, char** argv)
