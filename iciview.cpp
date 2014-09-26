@@ -10,68 +10,64 @@ using namespace cv;
 vector<string> files;
 vector<Mat> images;
 vector<int> times;
+vector<bool> outliers;
+vector<double> sums;
 
-void CallBackFunc(int event, int x, int y, int flags, void* userdata)
+void saveTimeFunctionForOctave(int y, int x)
 {
-     if  ( event == EVENT_LBUTTONDOWN )
-     {
-          cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-
-	  ofstream octaveFile;
-	  octaveFile.open ("oiv.txt");
-
-	  for (int i = 0; i < images.size(); i++) 
-	  {
-	      Vec3b intensity = images[i].at<Vec3b>(y, x);
-	      uchar blue = intensity.val[0];
-	      uchar green = intensity.val[1];
-	      uchar red = intensity.val[2];
-
-	      octaveFile << times[i] 
+    ofstream octaveFile;
+    octaveFile.open ("oiv.txt");
+    
+    for (int i = 0; i < images.size(); i++) 
+    {
+	Vec3b intensity = images[i].at<Vec3b>(y, x);
+	uchar blue = intensity.val[0];
+	uchar green = intensity.val[1];
+	uchar red = intensity.val[2];
+	
+	octaveFile << times[i] 
 		   << "," << (int)blue
 		   << "," << (int)green
 		   << "," << (int)red
 		   << endl;
-	  }
-	  octaveFile.close();
+    }
+    octaveFile.close();
+}
+// --------------------------------------------------------------------------------
+
+void mouseClickCallback(int event, int x, int y, int flags, void* userdata)
+{
+     if(event == EVENT_LBUTTONDOWN )
+     {
+	 
+	 saveTimeFunctionForOctave(y, x);	 
      }
 }
+// --------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+void scanDirectory(const string& dir) 
 {
-  if (argc < 2) 
-  {
-      cerr << "missing argument" << endl;
-      return 2;
-  }
+    DIR* dirp = opendir(dir.c_str());
+    struct dirent * dp = NULL;
 
+    while ((dp = readdir(dirp)) != NULL)
+    {
+	string fn = dp->d_name;
+	if (fn == "." || fn == "..") 
+	{
+	    continue;
+	}
+	files.push_back(fn);
+    }
+    (void)closedir(dirp);
+    cout << files.size() << endl;
+    sort(files.begin(), files.end());
+}
+// --------------------------------------------------------------------------------
 
-  DIR* dirp = opendir(argv[1]);
-  struct dirent * dp = NULL;
-
-  while ((dp = readdir(dirp)) != NULL)
-  {
-      string fn = dp->d_name;
-      if (fn == "." || fn == "..") 
-      {
-	  continue;
-      }
-      files.push_back(fn);
-  }
-  (void)closedir(dirp);
-  cout << files.size() << endl;
-  sort(files.begin(), files.end());
-
-  namedWindow("My Window", 1);
-  setMouseCallback("My Window", CallBackFunc, NULL);
-
+void loadFiles(const string& dir) 
+{
   int cnt = files.size();
-  if (cnt > 20000) 
-  {
-      cnt = 20;
-  }
-
-  Mat* lastGood = 0;
   int startTime = -1;
   for (int i = 0; i < cnt; i++) 
   {
@@ -84,23 +80,70 @@ int main(int argc, char** argv)
       }
       times.push_back(n - startTime);
 
-      string fn = string(argv[1]) + "/" + files[i];
+      string fn = dir + "/" + files[i];
       images.push_back(imread(fn));
       if (images.back().empty()) 
       {
 	  cerr << "unreadable image " <<  fn << endl;
       }
-      else
-      {
-	  lastGood = &images.back();
-      }
+      if (i % 10 == 0) cerr << ".";
   }
+}
+// --------------------------------------------------------------------------------
+
+void computeOutliers() 
+{
+  int cnt = files.size();
+  for (int i = 0; i < cnt; i++) 
+  {
+      double s = 0;
+      if (!images[i].empty()) 
+      {
+	  uchar* b = images[i].ptr<uchar>(0);
+	  const int cnt = images[i].rows * images[i].cols * images[i].elemSize();
+	  for (int j = 0; j < cnt; j++)
+	  {
+	      s += *b++;
+	  }
+      }
+      sums.push_back(s);
+      cout << s << endl;
+  }
+}
+// --------------------------------------------------------------------------------
+
+Mat* findLastGood()
+{
+    for (unsigned i = images.size(); i-- > 0; )
+    {
+	if (!images[i].empty()) {
+	    return &images[i];
+	}
+    }
+    return 0;
+}
+// --------------------------------------------------------------------------------
+
+int main(int argc, char** argv)
+{
+  if (argc < 2) 
+  {
+      cerr << "missing argument" << endl;
+      return 2;
+  }
+  scanDirectory(argv[1]);
+  loadFiles(argv[1]);
+  computeOutliers();
+  Mat* lastGood = findLastGood();
   if (lastGood != 0) 
   {
-      imshow("My Window", *lastGood);
+      const char* windowTitle = "iciview";
+      namedWindow(windowTitle, 1);
+      setMouseCallback(windowTitle, mouseClickCallback, NULL);
+      imshow(windowTitle, *lastGood);
+      waitKey(0);
   }
-  waitKey(0);
   
   return 0;
 }
-
+// --------------------------------------------------------------------------------
