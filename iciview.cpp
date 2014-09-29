@@ -12,6 +12,7 @@ vector<Mat> images;
 vector<int> times;
 vector<bool> outliers;
 vector<double> sums;
+vector<bool> accepted;
 
 void saveTimeFunctionForOctave(int y, int x)
 {
@@ -20,16 +21,19 @@ void saveTimeFunctionForOctave(int y, int x)
     
     for (int i = 0; i < images.size(); i++) 
     {
-	Vec3b intensity = images[i].at<Vec3b>(y, x);
-	uchar blue = intensity.val[0];
-	uchar green = intensity.val[1];
-	uchar red = intensity.val[2];
+	if (accepted[i]) 
+	{
+	    Vec3b intensity = images[i].at<Vec3b>(y, x);
+	    uchar blue = intensity.val[0];
+	    uchar green = intensity.val[1];
+	    uchar red = intensity.val[2];
 	
-	octaveFile << times[i] 
+	    octaveFile << times[i] 
 		   << "," << (int)blue
 		   << "," << (int)green
 		   << "," << (int)red
 		   << endl;
+	}
     }
     octaveFile.close();
 }
@@ -91,7 +95,7 @@ void loadFiles(const string& dir)
 }
 // --------------------------------------------------------------------------------
 
-void computeOutliers() 
+void computeImageSums()
 {
   int cnt = files.size();
   for (int i = 0; i < cnt; i++) 
@@ -112,11 +116,68 @@ void computeOutliers()
 }
 // --------------------------------------------------------------------------------
 
+void computeMeanAndDeviation(double* mean, double* sd)
+{
+    *mean = 0;
+    *sd = 0;
+    
+    double sum = 0;
+    double sumSq = 0;
+    int c = 0;
+
+    int cnt = files.size();
+    for (int i = 0; i < cnt; i++) 
+    {
+	if (!images[i].empty()) 
+	{
+	    c++;
+	    sum += sums[i];
+	    sumSq += sums[i]*sums[i];
+	}
+    }
+    
+    if (c > 1)
+    {
+	*mean = sum / c;
+	*sd = sqrt((sumSq - c * *mean * *mean)/(c-1));
+    }
+    cout << " mean " << *mean << " sd " << *sd << endl;
+
+}
+// --------------------------------------------------------------------------------
+
+void computeOutliers(double tolerance) 
+{
+    double mean = 0, sd = 0;
+    int remain = 0;
+    computeImageSums();
+
+    computeMeanAndDeviation(&mean, &sd);
+    if (sd != 0) {
+	int cnt = files.size();
+	for (int i = 0; i < cnt; i++) 
+	{
+	    bool ok = false;
+	    if (!images[i].empty()) 
+	    {
+		double delta = (sums[i] -  mean)/(sd*tolerance);
+		ok = (delta >= -1 && delta <= 1);
+	    }
+	    accepted.push_back(ok);
+	    if (ok) remain++;
+	}
+    }
+    cout << "remain " << remain << " of " << files.size() << endl;
+}
+// --------------------------------------------------------------------------------
+
+
 Mat* findLastGood()
 {
     for (unsigned i = images.size(); i-- > 0; )
     {
-	if (!images[i].empty()) {
+	if (accepted[i]) 
+	{
 	    return &images[i];
 	}
     }
@@ -133,7 +194,7 @@ int main(int argc, char** argv)
   }
   scanDirectory(argv[1]);
   loadFiles(argv[1]);
-  computeOutliers();
+  computeOutliers(2.0);
   Mat* lastGood = findLastGood();
   if (lastGood != 0) 
   {
