@@ -7,6 +7,11 @@
 using namespace std;
 using namespace cv;
 
+int c0=12;
+int c1=12;
+int xl=90;
+int xr=320;
+
 vector<string> files;
 vector<Mat> images;
 vector<int> times;
