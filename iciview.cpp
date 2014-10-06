@@ -32,7 +32,7 @@ double transformPixel(int y, int x, uchar r, uchar g, uchar b)
     double result = 0;
     for (int i = 0; i < 3; i++)
     {
-	double p0 = backgroundMean.at<Vec3b>(y, x)[i];
+	double p0 = backgroundMean.at<Vec3f>(y, x)[i];
 	result += (p[i] - p0) * coef[i];
     }
     return result;
@@ -55,6 +55,19 @@ void transformMatrix(const Mat& input, Mat* output)
 	    output->at<uchar>(y, x) = (uchar)floor(d); 		
 	}
     }
+}
+// --------------------------------------------------------------------------------
+
+Mat* findLastGood()
+{
+    for (unsigned i = images.size(); i-- > 0; )
+    {
+	if (accepted[i]) 
+	{
+	    return &images[i];
+	}
+    }
+    return 0;
 }
 // --------------------------------------------------------------------------------
 
@@ -243,24 +256,94 @@ void computeOutliers(double tolerance)
 
 void computeBackground()
 {
-
-}
-// --------------------------------------------------------------------------------
-
-
-
-Mat* findLastGood()
-{
-    for (unsigned i = images.size(); i-- > 0; )
+    Mat* p = findLastGood();
+    if (p == NULL) 
+    {
+	return;
+    }
+    int w = p->size().width;
+    int h = p->size().height;
+   
+    Mat sum(h, w, CV_32FC3, Scalar(0.0, 0.0, 0.0));
+    int cnt = 0;
+    for (int i = 0; i < c0; i++) 
     {
 	if (accepted[i]) 
 	{
-	    return &images[i];
+	    ++cnt;
+	    for (int y = 0; y < h; y++) 
+	    {
+		for (int x = 0; x < w; x++) 
+		{
+		    for (int c = 0; c < 3; c++)
+		    {
+			sum.at<Vec3f>(y, x)[c] += images[i].at<Vec3b>(y, x)[c];
+		    }
+		}
+	    }
 	}
     }
-    return 0;
+
+    if (cnt == 0)
+    {
+	return;
+    }
+
+    backgroundMean = Mat(h, w, CV_32FC3);
+    for (int y = 0; y < h; y++) 
+    {
+	for (int x = 0; x < w; x++) 
+	{
+	    Vec3f v = sum.at<Vec3f>(y, x);
+	    for (int c = 0; c < 3; c++)
+	    {
+		backgroundMean.at<Vec3f>(y, x)[c] = v[c] / cnt;
+	    }
+	}
+    }
+
+    Mat sumX(h, w, CV_32FC1, Scalar(0.0, 0.0, 0.0));
+    Mat sumXSq(h, w, CV_32FC1, Scalar(0.0, 0.0, 0.0));
+
+    for (int i = 0; i < c0; i++) 
+    {
+	if (accepted[i]) 
+	{
+	    Mat m;
+	    transformMatrix(images[i], &m);
+	    for (int y = 0; y < h; y++) 
+	    {
+		for (int x = 0; x < w; x++) 
+		{
+		    double val = m.at<float>(y, x);
+		    sumX.at<float>(y, x) += val;
+		    sumXSq.at<float>(y, x) += val * val;		    
+		}
+	    }
+	}
+    }
+
+    ofstream octaveFile;
+    octaveFile.open ("osd.txt");
+	    
+    backgroundSd = Mat(h, w, CV_32FC1);
+    for (int y = 0; y < h; y++) 
+    {
+	for (int x = 0; x < w; x++) 
+	{
+	    backgroundSd.at<float>(y, x) = sqrt(sumXSq.at<float>(y,x)/cnt);
+	    octaveFile << y 
+		       << "," << x
+		       << "," << sumX.at<float>(y,x)
+		       << "," << backgroundSd.at<float>(y,x)
+		       << endl;
+		
+	}
+    }
+
 }
 // --------------------------------------------------------------------------------
+
 
 int main(int argc, char** argv)
 {
