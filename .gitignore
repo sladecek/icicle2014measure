@@ -5,3 +5,5 @@ Makefile
 cmake_install.cmake
 iciview
 oiv.txt
+oit.txt
+osd.txt
