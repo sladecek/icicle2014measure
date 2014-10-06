@@ -354,7 +354,7 @@ int main(int argc, char** argv)
   }
   scanDirectory(argv[1]);
   loadFiles(argv[1]);
-  computeOutliers(2.0);
+  computeOutliers(1.7);
   computeBackground();
   Mat* lastGood = findLastGood();
   transformMatrix(*lastGood, &transformed);
