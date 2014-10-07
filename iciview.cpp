@@ -377,6 +377,77 @@ void computeBackground()
 }
 // --------------------------------------------------------------------------------
 
+void clickableTimeFunction() 
+{
+  Mat* lastGood = findLastGood();
+  transformMatrix(*lastGood, &transformed);
+  if (lastGood != 0) 
+  {
+      const char* windowTitle = "iciview";
+      namedWindow(windowTitle, 1);
+      setMouseCallback(windowTitle, mouseClickCallback, NULL);
+      imshow(windowTitle, transformed);
+      waitKey(0);
+  }
+}
+// --------------------------------------------------------------------------------
+
+
+void plotGrow()
+{
+    ofstream octaveFile;
+    octaveFile.open ("grow.txt");
+
+    Mat* p = findLastGood();
+    if (p == NULL) 
+    {
+	return;
+    }
+    int w = p->size().width;
+    int h = p->size().height;
+
+    for (int y = 0; y < h; y++)
+    {
+	if (y % 10 == 0) cerr << ".";
+	for (int x = 0; x < w; x++)
+	{
+
+	    double prevPx = 0;
+	    int t = 20000;
+	    
+	    for (int i = 0; i < images.size(); i++) 
+	    {
+		if (accepted[i]) 
+		{
+		    Vec3b intensity = images[i].at<Vec3b>(y, x);
+		    uchar blue = intensity.val[0];
+		    uchar green = intensity.val[1];
+		    uchar red = intensity.val[2];
+		    double px = transformPixel(y, x, red, green, blue);	
+		    double diff = 0;
+	    
+		    if (i > 0) 
+		    {
+			diff = (px-prevPx)/(times[i]-times[i-1]);		
+		    }
+		    double v = 100* diff * diff + px;
+		    if (v > 150) 
+		    {
+			t = times[i] - times[0];
+			break;
+		    }
+		    prevPx = px;
+		}
+	    }
+	    if (x > 0) octaveFile << ",";
+	    octaveFile << t;
+	}
+	octaveFile << endl;
+    }
+    octaveFile.close();
+
+}
+// --------------------------------------------------------------------------------
 
 int main(int argc, char** argv)
 {
@@ -390,16 +461,9 @@ int main(int argc, char** argv)
   computeOutliers(1.7, 1000);
   computeOutliers(1.7, 100);
   computeBackground();
-  Mat* lastGood = findLastGood();
-  transformMatrix(*lastGood, &transformed);
-  if (lastGood != 0) 
-  {
-      const char* windowTitle = "iciview";
-      namedWindow(windowTitle, 1);
-      setMouseCallback(windowTitle, mouseClickCallback, NULL);
-      imshow(windowTitle, transformed);
-      waitKey(0);
-  }
+
+//  clickableTimeFunction();
+  plotGrow();
   
   return 0;
 }
