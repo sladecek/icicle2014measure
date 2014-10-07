@@ -18,7 +18,7 @@ vector<string> files;
 vector<Mat> images;
 vector<int> times;
 vector<bool> outliers;
-vector<double> sums;
+
 vector<bool> accepted;
 Mat backgroundMean;
 Mat backgroundSd;
@@ -78,6 +78,7 @@ void saveTimeFunctionForOctave(int y, int x)
     
     for (int i = 0; i < images.size(); i++) 
     {
+//	cout << files[i] << " " << accepted[i] << endl;
 	if (accepted[i]) 
 	{
 	    Vec3b intensity = images[i].at<Vec3b>(y, x);
@@ -103,6 +104,7 @@ void saveTransformedTimeFunctionForOctave(int y, int x)
     
     for (int i = 0; i < images.size(); i++) 
     {
+//	cout << files[i] << " " << accepted[i] << endl;
 	if (accepted[i]) 
 	{
 	    Vec3b intensity = images[i].at<Vec3b>(y, x);
@@ -144,7 +146,7 @@ void scanDirectory(const string& dir)
 	files.push_back(fn);
     }
     (void)closedir(dirp);
-    cout << files.size() << endl;
+//    cout << files.size() << endl;
     sort(files.begin(), files.end());
 }
 // --------------------------------------------------------------------------------
@@ -178,8 +180,9 @@ void loadFiles(const string& dir)
 }
 // --------------------------------------------------------------------------------
 
-void computeImageSums()
+vector<double> computeImageSums(int height)
 {
+  vector<double> sums;
   int cnt = files.size();
   for (int i = 0; i < cnt; i++) 
   {
@@ -187,19 +190,25 @@ void computeImageSums()
       if (!images[i].empty()) 
       {
 	  uchar* b = images[i].ptr<uchar>(0);
-	  const int cnt = images[i].rows * images[i].cols * images[i].elemSize();
+	  int rows = images[i].rows;
+	  if (rows > height)
+	  {
+	      rows = height;
+	  }
+	  const int cnt = rows * images[i].cols * images[i].elemSize();
 	  for (int j = 0; j < cnt; j++)
 	  {
 	      s += *b++;
 	  }
       }
       sums.push_back(s);
-      cout << s << endl;
+//      cout << files[i] << ": " << s << endl;
   }
+  return sums;
 }
 // --------------------------------------------------------------------------------
 
-void computeImageMeanAndDeviation(double* mean, double* sd)
+void computeImageMeanAndDeviation(const vector<double>& sums, double* mean, double* sd)
 {
     *mean = 0;
     *sd = 0;
@@ -224,20 +233,25 @@ void computeImageMeanAndDeviation(double* mean, double* sd)
 	*mean = sum / c;
 	*sd = sqrt((sumSq - c * *mean * *mean)/(c-1));
     }
-    cout << " mean " << *mean << " sd " << *sd << endl;
+
 
 }
 // --------------------------------------------------------------------------------
 
-void computeOutliers(double tolerance) 
+void computeOutliers(double tolerance, int height) 
 {
     double mean = 0, sd = 0;
     int remain = 0;
-    computeImageSums();
+    vector<double> sums = computeImageSums(height);
 
-    computeImageMeanAndDeviation(&mean, &sd);
+    int cnt = files.size();
+    while (accepted.size() < cnt) 
+    {
+	accepted.push_back(true);
+    }
+
+    computeImageMeanAndDeviation(sums, &mean, &sd);
     if (sd != 0) {
-	int cnt = files.size();
 	for (int i = 0; i < cnt; i++) 
 	{
 	    bool ok = false;
@@ -245,12 +259,17 @@ void computeOutliers(double tolerance)
 	    {
 		double delta = (sums[i] -  mean)/(sd*tolerance);
 		ok = (delta >= -1 && delta <= 1);
+//		cout << files[i] << ": " << delta << " ok " << ok << endl;
 	    }
-	    accepted.push_back(ok);
+	    if (!ok) 
+	    {
+		accepted[i] = false;
+	    }
 	    if (ok) remain++;
 	}
     }
-    cout << "remain " << remain << " of " << files.size() << endl;
+    cout << "mean " << mean << " sd " << sd 
+	 << " remain " << remain << " of " << files.size() << endl;
 }
 // --------------------------------------------------------------------------------
 
@@ -354,7 +373,8 @@ int main(int argc, char** argv)
   }
   scanDirectory(argv[1]);
   loadFiles(argv[1]);
-  computeOutliers(1.7);
+  computeOutliers(1.7, 1000);
+  computeOutliers(1.7, 100);
   computeBackground();
   Mat* lastGood = findLastGood();
   transformMatrix(*lastGood, &transformed);
