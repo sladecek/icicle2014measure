@@ -102,6 +102,8 @@ void saveTransformedTimeFunctionForOctave(int y, int x)
     ofstream octaveFile;
     octaveFile.open ("oit.txt");
     
+    double prevPx = 0;
+
     for (int i = 0; i < images.size(); i++) 
     {
 //	cout << files[i] << " " << accepted[i] << endl;
@@ -111,10 +113,22 @@ void saveTransformedTimeFunctionForOctave(int y, int x)
 	    uchar blue = intensity.val[0];
 	    uchar green = intensity.val[1];
 	    uchar red = intensity.val[2];
-	
+	    double px = transformPixel(y, x, red, green, blue);	
+	    double diff = 0;
+	    
+	    if (i > 0) 
+	    {
+		diff = (px-prevPx)/(times[i]-times[i-1]);		
+	    }
+
 	    octaveFile << times[i] 
-		       << "," << transformPixel(y, x, red, green, blue)
+		       << "," << px 
+		       << "," << diff * diff
+		       << "," << 100* diff * diff + px
 		       << endl;
+
+	    prevPx = px;
+
 	}
     }
     octaveFile.close();
