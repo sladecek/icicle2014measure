@@ -462,8 +462,8 @@ int main(int argc, char** argv)
   computeOutliers(1.7, 100);
   computeBackground();
 
-//  clickableTimeFunction();
-  plotGrow();
+  clickableTimeFunction();
+//  plotGrow();
   
   return 0;
 }
