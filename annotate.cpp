@@ -9,6 +9,9 @@
 using namespace std;
 using namespace cv;
 
+const char* colorWindow = "original";
+const char* bwWindow = "threshold";
+
 int c0=12;
 int c1=12;
 int xl=90;
@@ -19,10 +22,13 @@ vector<Mat> images;
 vector<int> times;
 vector<bool> outliers;
 
+
 vector<bool> accepted;
 Mat backgroundMean;
 Mat backgroundSd;
 Mat transformed;
+
+int trackbarValue = 0;
 
 double transformPixel(int y, int x, uchar r, uchar g, uchar b)
 {
@@ -390,16 +396,29 @@ void computeBackground()
 }
 // --------------------------------------------------------------------------------
 
-void clickableTimeFunction() 
+void trackbarCallback(int value)
+{
+    transformMatrix(images[value], &transformed);
+    imshow(bwWindow, transformed);
+    imshow(colorWindow, images[value]);
+}
+// --------------------------------------------------------------------------------
+
+
+void annotate() 
 {
   Mat* lastGood = findLastGood();
-  transformMatrix(*lastGood, &transformed);
+
   if (lastGood != 0) 
   {
-      const char* windowTitle = "iciview";
-      namedWindow(windowTitle, 1);
-      setMouseCallback(windowTitle, mouseClickCallback, NULL);
-      imshow(windowTitle, transformed);
+
+      namedWindow(bwWindow, 1);
+      namedWindow(colorWindow, 1);
+      setMouseCallback(colorWindow, mouseClickCallback, NULL);
+
+      cvCreateTrackbar("time", colorWindow, &trackbarValue, files.size()-1, *trackbarCallback );
+      trackbarCallback(files.size()-1);
+
       waitKey(0);
   }
 }
@@ -476,8 +495,9 @@ int main(int argc, char** argv)
   computeOutliers(1.7, 100);
   computeBackground();
 
+  annotate();
 //  clickableTimeFunction();
-  plotGrow();
+//  plotGrow();
   
   return 0;
 }
