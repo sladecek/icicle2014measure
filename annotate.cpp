@@ -29,6 +29,9 @@ Mat backgroundSd;
 Mat transformed;
 
 int trackbarValue = 0;
+int trackbarTime = 0;
+
+ofstream annFile;
 
 double transformPixel(int y, int x, uchar r, uchar g, uchar b)
 {
@@ -159,7 +162,7 @@ void mouseClickCallback(int event, int x, int y, int flags, void* userdata)
 {
      if(event == EVENT_LBUTTONDOWN )
      {	 
-	 saveTransformedTimeFunctionForOctave(y, x);	 
+	 annFile << y << "," << x << "," << trackbarTime << endl;
      }
 }
 // --------------------------------------------------------------------------------
@@ -398,6 +401,7 @@ void computeBackground()
 
 void trackbarCallback(int value)
 {
+    trackbarTime = times[value];
     transformMatrix(images[value], &transformed);
     imshow(bwWindow, transformed);
     imshow(colorWindow, images[value]);
@@ -407,10 +411,8 @@ void trackbarCallback(int value)
 
 void annotate() 
 {
-  Mat* lastGood = findLastGood();
+    annFile.open ("annotate.txt");
 
-  if (lastGood != 0) 
-  {
 
       namedWindow(bwWindow, 1);
       namedWindow(colorWindow, 1);
@@ -420,7 +422,8 @@ void annotate()
       trackbarCallback(files.size()-1);
 
       waitKey(0);
-  }
+
+  annFile.close();
 }
 // --------------------------------------------------------------------------------
 
