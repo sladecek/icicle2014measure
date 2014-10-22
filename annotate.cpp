@@ -48,6 +48,18 @@ double transformPixel(int y, int x, uchar r, uchar g, uchar b)
 }
 // --------------------------------------------------------------------------------
 
+uchar transformAndTruncatePixel(int y, int x, const Vec3b& pixel)
+{
+    uchar blue = pixel.val[0];
+    uchar green = pixel.val[1];
+    uchar red = pixel.val[2];
+    double d = transformPixel(y, x, red, green, blue);
+    d = std::max(0.0, d);
+    d = std::min(255.0, d);
+    return (uchar)floor(d); 		
+}
+// --------------------------------------------------------------------------------
+
 void transformMatrix(const Mat& input, Mat* output)
 {
     Size s = input.size();
@@ -55,13 +67,7 @@ void transformMatrix(const Mat& input, Mat* output)
     for (int y = 0; y < s.height; y++) {
 	for (int x = 0; x < s.width; x++) {
 	    Vec3b intensity = input.at<Vec3b>(y, x);
-	    uchar blue = intensity.val[0];
-	    uchar green = intensity.val[1];
-	    uchar red = intensity.val[2];
-	    double d = transformPixel(y, x, red, green, blue);
-	    d = std::max(0.0, d);
-	    d = std::min(255.0, d);
-	    output->at<uchar>(y, x) = (uchar)floor(d); 		
+	    output->at<uchar>(y, x) = transformAndTruncatePixel(y, x, intensity);
 	}
     }
 }
@@ -119,41 +125,36 @@ void saveTimeFunctionForOctave(int y, int x)
 }
 // --------------------------------------------------------------------------------
 
-void saveTransformedTimeFunctionForOctave(int y, int x)
-{
-    ofstream octaveFile;
-    octaveFile.open ("oit.txt");
-    
-    double prevPx = 0;
 
+void saveRowSumsForOctave()
+{
+    ofstream timeFile;
+    ofstream valueFile;
+    timeFile.open ("at.txt");
+    valueFile.open ("av.txt");
+    
     for (int i = 0; i < images.size(); i++) 
     {
-//	cout << files[i] << " " << accepted[i] << endl;
-	if (accepted[i]) 
+	if (accepted[i] && i < 130) 
 	{
-	    Vec3b intensity = images[i].at<Vec3b>(y, x);
-	    uchar blue = intensity.val[0];
-	    uchar green = intensity.val[1];
-	    uchar red = intensity.val[2];
-	    double px = transformPixel(y, x, red, green, blue);	
-	    double diff = 0;
 	    
-	    if (i > 0) 
-	    {
-		diff = (px-prevPx)/(times[i]-times[i-1]);		
+	    timeFile << times[i] << endl;
+
+	    Size s = images[i].size();
+
+	    for (int y = 0; y < s.height; y++) {
+		double sum = 0.0;
+		for (int x = 0; x < s.width; x++) {
+		    Vec3b intensity = images[i].at<Vec3b>(y, x);
+		    sum += transformAndTruncatePixel(y, x, intensity);
+		}
+		valueFile << sum << " ";
 	    }
-
-	    octaveFile << times[i] 
-		       << "," << px 
-		       << "," << diff * diff
-		       << "," << 100* diff * diff + px
-		       << endl;
-
-	    prevPx = px;
-
+	    valueFile << endl;
 	}
     }
-    octaveFile.close();
+    timeFile.close();
+    valueFile.close();
 }
 // --------------------------------------------------------------------------------
 
@@ -499,6 +500,7 @@ int main(int argc, char** argv)
   computeBackground();
 
   annotate();
+  saveRowSumsForOctave();
 //  clickableTimeFunction();
 //  plotGrow();
   
