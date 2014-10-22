@@ -168,7 +168,7 @@ void mouseClickCallback(int event, int x, int y, int flags, void* userdata)
 }
 // --------------------------------------------------------------------------------
 
-void scanDirectory(const string& dir) 
+void scanDirectory(const string& dir, const string& limit, int maxPict) 
 {
     DIR* dirp = opendir(dir.c_str());
     struct dirent * dp = NULL;
@@ -180,7 +180,17 @@ void scanDirectory(const string& dir)
 	{
 	    continue;
 	}
+	
+	if (fn <= limit)
+	{
+	    continue;
+	}
+	
 	files.push_back(fn);
+	if (files.size() >= maxPict)
+	{
+	    break;
+	}
     }
     (void)closedir(dirp);
 //    cout << files.size() << endl;
@@ -188,7 +198,7 @@ void scanDirectory(const string& dir)
 }
 // --------------------------------------------------------------------------------
 
-void loadFiles(const string& dir) 
+void loadFiles(const string& dir, int r1, int r2) 
 {
   int cnt = files.size();
   int startTime = -1;
@@ -206,7 +216,11 @@ void loadFiles(const string& dir)
       string fn = dir + "/" + files[i];
       Mat wholePicture(imread(fn));
       Mat partial;
-      Mat(wholePicture, Range::all(), Range(90,320)).copyTo(partial);
+
+      if (!wholePicture.empty())
+      {
+	  Mat(wholePicture, Range::all(), Range(r1,r2)).copyTo(partial);
+      }
       images.push_back(partial);
       if (images.back().empty()) 
       {
@@ -493,8 +507,8 @@ int main(int argc, char** argv)
       cerr << "missing argument" << endl;
       return 2;
   }
-  scanDirectory(argv[1]);
-  loadFiles(argv[1]);
+  scanDirectory(argv[1], "1413721203.jpg", 200);
+  loadFiles(argv[1], 130, 440);
   computeOutliers(1.7, 1000);
   computeOutliers(1.7, 100);
   computeBackground();
