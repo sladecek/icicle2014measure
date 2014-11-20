@@ -507,8 +507,11 @@ int main(int argc, char** argv)
       cerr << "missing argument" << endl;
       return 2;
   }
-  scanDirectory(argv[1], "1413721203.jpg", 200);
-  loadFiles(argv[1], 130, 440);
+  string limitPicture = "1413721203.jpg";
+  limitPicture = "";
+  int cnt = 200;
+  scanDirectory(argv[1], limitPicture, cnt);
+  loadFiles(argv[1], 120, 270);
   computeOutliers(1.7, 1000);
   computeOutliers(1.7, 100);
   computeBackground();
