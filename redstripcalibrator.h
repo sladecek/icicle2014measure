@@ -25,7 +25,7 @@ public:
     // Implement Calibrator interface.
     virtual void ComputeCalibrationFromPicture(const Mat& picture)
     {
-	Mat logPicture = picture;
+	Mat logPicture = picture.clone();
 
 	Size s = picture.size();
 	RedStripSearch rss(picture);
@@ -98,7 +98,7 @@ public:
 
       namedWindow("test", 1);
       imshow("test", logPicture);
-      waitKey(0);
+     waitKey(0);
 
     };
 

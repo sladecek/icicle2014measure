@@ -56,9 +56,9 @@ public:
 		double xmm = (double)x/pxPerMm;
 		double ymm = (double)y/pxPerMm;
 		double xpx = inverseMap.UseXMap(ymm,xmm);
-		map_x.at<double>(y,x) = xpx;
+		map_x.at<float>(y,x) = xpx;
 		double ypx = inverseMap.UseYMap(ymm,xmm);
-		map_y.at<double>(y,x) = ypx;
+		map_y.at<float>(y,x) = ypx;
 
 		if (x % 30 == 0 && y % 30 == 0)
 		std::cout << "y_px=" << ypx << " x_px=" << xpx
@@ -67,6 +67,18 @@ public:
 	}
 
 	remap(picture, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+	
+	for (int y = 0; y < dstSize.height; y+=10*pxPerMm) 
+	{
+	    line(dst, Point(0, y), Point(dstSize.width, y), Scalar(30, 30, 30));
+	}
+	for (int x = 0; x < dstSize.width; x+=10*pxPerMm) 
+	{
+	    line(dst, Point(x, 0), Point(x, dstSize.height), Scalar(30, 30, 30));
+	}
+	
+
+
 	return dst;
     };
 

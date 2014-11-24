@@ -17,8 +17,8 @@ public:
 	row(0)
     {
 	// minimal size, should be larger
-	configurationMatrix = Mat::zeros(12, 12, CV_64F); 
-	rightHandSideMatrix = Mat::zeros(12, 1, CV_64F); 
+	configurationMatrix = Mat::zeros(6, 6, CV_64F); 
+	rightHandSideMatrix = Mat::zeros(6, 1, CV_64F); 
     }
 
     // Add one equation for x coordinate.
@@ -30,7 +30,7 @@ public:
     // Add one equation for y coordinate.
     void AddYEquation(double y_px, double x_px, double y_mm)
     {
-	AddEquation(6, y_px, x_px, y_mm);
+	AddEquation(3, y_px, x_px, y_mm);
     }
 
 
@@ -38,7 +38,7 @@ public:
     virtual void ComputeCalibration()
     {
 	isOk = false;
-	if (row >= 12)
+	if (row >= 6)
 	{
 	    Mat& A = configurationMatrix;
 //	    std::cout << A;
@@ -67,7 +67,7 @@ protected:
     {
 	if (row >= configurationMatrix.size().height)
 	{	    
-	    Mat lineCm = Mat::zeros(1, 12, CV_64F); 
+	    Mat lineCm = Mat::zeros(1, 6, CV_64F); 
 	    configurationMatrix.push_back(lineCm);   
 
 	    Mat lineRhs = Mat::zeros(1, 1, CV_64F); 
@@ -85,9 +85,6 @@ protected:
 	configurationMatrix.at<double>(row, i++) = 1;
 	configurationMatrix.at<double>(row, i++) = x_px;
 	configurationMatrix.at<double>(row, i++) = y_px;
-	configurationMatrix.at<double>(row, i++) = x_px*x_px;
-	configurationMatrix.at<double>(row, i++) = y_px*y_px;
-	configurationMatrix.at<double>(row, i++) = x_px*y_px;;
 	rightHandSideMatrix.at<double>(row, 0) = rhs;
 	row++;
 

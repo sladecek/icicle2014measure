@@ -27,7 +27,7 @@ int main(int argc, char** argv)
   {
       cout << c.GetCalibration() << endl;
       Mapper m;
-      Mat mappedPicture = m.ConvertToMm(picture, c, 2, 5, 80, 0, 150);
+      Mat mappedPicture = m.ConvertToMm(picture, c, 7, 10, 70, 0, 150);
       namedWindow("ou", 1);
       imshow("ou", mappedPicture);
       waitKey(0);
