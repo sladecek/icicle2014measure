@@ -1,10 +1,12 @@
 #include "calibrator.h"
 #include <iostream>
 
+#pragma once
+
 using namespace cv;
 
 /// Calibrates scene by solving overdetermined set of point equations.
-class PointSetCalibrator
+class PointSetCalibrator: public CalibratorBase
 {
 public:
     

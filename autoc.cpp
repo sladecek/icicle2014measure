@@ -1,5 +1,6 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "redstripcalibrator.h"
+#include "mapper.h"
 #include <iostream>
 
 using namespace std;
@@ -25,6 +26,12 @@ int main(int argc, char** argv)
   if (c.IsOk()) 
   {
       cout << c.GetCalibration() << endl;
+      Mapper m;
+      Mat mappedPicture = m.ConvertToMm(picture, c, 2, 5, 80, 0, 150);
+      namedWindow("ou", 1);
+      imshow("ou", mappedPicture);
+      waitKey(0);
+
   }
   else
   {
