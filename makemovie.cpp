@@ -6,6 +6,7 @@
 #include "mapper.h"
 #include "painter.h"
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 using namespace cv;
@@ -21,7 +22,9 @@ int main(int argc, char** argv)
       return 2;
   }
   
+  cerr << "(1) reading " << endl;
   vector<Picture>  rawPictures = DirectoryScanner::ScanDirectory(argv[1]);
+  cerr << "(2) outliers " << endl;
   vector<Picture> acceptedPictures = OutlierRemover::RemoveOutliers(rawPictures, 1.7, 100);
   if (acceptedPictures.size() <= 0)
   {
@@ -29,6 +32,7 @@ int main(int argc, char** argv)
       return 2;      
   }
 
+  cerr << "(3) calibration " << endl;
   const double horizontalDistanceBetweenStrips_mm = 86;
   const double verticalDistanceBetweenMarks_mm = 94;
   RedStripCalibrator calibrator(
@@ -46,9 +50,11 @@ int main(int argc, char** argv)
   }
   cout << "calibration: " << calibrator.GetCalibration() << endl;
 
+  cerr << "(x) analysis " << endl;
+  cerr << "(5) movie " << endl;
   Mapper mapper(calibrator, 7, 10, 70, 0, 150);
-  MovieMaker movieMaker("movie");
-  
+  MovieMaker movieMaker("movie.mpg", mapper.GetSize());
+  cerr << mapper.GetSize() << endl;
   for(int i = 0; i < acceptedPictures.size(); i++) 
   {
       Picture& pic = acceptedPictures[i];
@@ -60,7 +66,13 @@ int main(int argc, char** argv)
       painter.DrawGrid(5);
       painter.DrawOverlayText(pic);
       movieMaker.AddPicture(roi);
-  }
+
+      if (i == 0) cerr << mapper.GetSize() << endl;
+/*      char s[100];
+      sprintf(s, "%d.jpg", i);
+      imwrite(s,roi);
+*/
+ }
 	
   movieMaker.CloseMovie();
   return 0;

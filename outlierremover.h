@@ -32,6 +32,7 @@ public:
 	for (int i = 0; i < cnt; i++) 
 	{
 	    src[i].OpenImage();
+	    if (i % 30 == 0)  cerr << "+";
 	    totals.push_back(0);
 	    if (src[i].IsValidImage())
 	    {
@@ -56,7 +57,7 @@ public:
 	    for (int i = 0; i < cnt; i++) 
 	    {
 		bool ok = false;
-		if (src[i].IsValidImage()) 
+		if (totals[i] > 0) 
 		{
 		    double delta = (totals[i] -  mean)/(sd*tolerance);
 		    ok = (delta >= -1 && delta <= 1);
@@ -69,7 +70,7 @@ public:
 	    }
 	}
 
-cout  << "mean " << mean << " sd " << sd 
+cout  << endl << "   mean " << mean << " sd " << sd 
       << " remain " << result.size() << " of " << src.size() << endl;
 	return result;
     }
