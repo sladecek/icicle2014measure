@@ -6,7 +6,7 @@
 #include "mapper.h"
 #include "painter.h"
 #include <iostream>
-#include <stdio.h>
+
 
 using namespace std;
 using namespace cv;
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   cerr << "(5) movie " << endl;
   Mapper mapper(calibrator, 7, 10, 70, 0, 150);
   MovieMaker movieMaker("movie.mpg", mapper.GetSize());
-  cerr << mapper.GetSize() << endl;
+
   for(int i = 0; i < acceptedPictures.size(); i++) 
   {
       Picture& pic = acceptedPictures[i];
@@ -65,13 +65,7 @@ int main(int argc, char** argv)
       Painter painter(&roi);
       painter.DrawGrid(5);
       painter.DrawOverlayText(pic);
-      movieMaker.AddPicture(roi);
-
-      if (i == 0) cerr << mapper.GetSize() << endl;
-/*      char s[100];
-      sprintf(s, "%d.jpg", i);
-      imwrite(s,roi);
-*/
+      movieMaker.AddPicture(roi, i);
  }
 	
   movieMaker.CloseMovie();

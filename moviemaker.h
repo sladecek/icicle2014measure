@@ -1,4 +1,6 @@
-#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdio.h>
+#include <stdlib.h>
 #pragma once
 
 
@@ -10,35 +12,33 @@ class MovieMaker
 {
 public:
 
-MovieMaker(const string& movieName, const Size& size) 
-
+MovieMaker(const string& movieName_, const Size& size) 
+    : movieName(movieName_)
     {
-	vw = new VideoWriter(movieName,
-CV_FOURCC('M','J','P','G') ,
-
-25, size, true);
+	system("rm -rf _tmp");
+	system("mkdir _tmp");
     }
 
     virtual ~MovieMaker()
-    { delete vw;}
+    {}
 
-    void AddPicture(const Mat& picture)
+    void AddPicture(const Mat& picture, int d)
     {
-	if (vw != 0)
-	{
-	    vw->write(picture);
-	}
+	char s[100];
+	sprintf(s, "_tmp/%06d.png", (int)d);
+	imwrite(s, picture);
     }
 
 
     void CloseMovie()
     {
-	delete vw;
-	vw = 0;
+	char s[1000];
+	sprintf(s, "ffmpeg -f image2 -i _tmp/%%06d.png %s.avi", movieName.c_str());
+	system(s);
     }
 
 protected:
-    VideoWriter* vw;
+    string movieName;
 
 
 
