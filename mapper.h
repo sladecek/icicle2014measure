@@ -10,31 +10,23 @@ class Mapper
 {
 public:
     
-    
-    // Map picture prom pixels to millimeters
-    virtual Mat ConvertToMm(
-	const Mat& picture,
+    Mapper(
 	const Calibrator& calibration,
 	int pxPerMm,
 	int x0, int x1,
 	int y0, int y1)
-	
+    
     {
-	
-	int dx = x1 - x0;
-	int dy = y1 - y0;
-	
-	Size dstSize(dx*pxPerMm, dy*pxPerMm);
+	dx = x1 - x0;
+	dy = y1 - y0;
+	this->pxPerMm = pxPerMm;
+	dstSize =  Size(dx*pxPerMm, dy*pxPerMm);
 
-	Mat dst;
-	dst.create(dstSize, CV_8UC3);
-
-	Mat map_x, map_y;
 	map_x.create(dstSize, CV_32FC1 );
 	map_y.create(dstSize, CV_32FC1 );
 
 	PointSetCalibrator inverseMap;
-	std::cout << calibration.GetCalibration() << "\n";
+//	std::cout << calibration.GetCalibration() << "\n";
 	for (int y = 0; y < 640; y += 100) 
 	{
 	    for (int x = 0; x < 480; x += 100) 
@@ -48,7 +40,7 @@ public:
 	    }
 	}
 	inverseMap.ComputeCalibration();
-	std::cout << inverseMap.GetCalibration() << "\n";
+//	std::cout << inverseMap.GetCalibration() << "\n";
 	for (int y = 0; y < dstSize.height; y++) 
 	{
 	    for (int x = 0; x < dstSize.width; x++) 
@@ -60,27 +52,37 @@ public:
 		double ypx = inverseMap.UseYMap(ymm,xmm);
 		map_y.at<float>(y,x) = ypx;
 
-		if (x % 30 == 0 && y % 30 == 0)
+/*		if (x % 30 == 0 && y % 30 == 0)
 		std::cout << "y_px=" << ypx << " x_px=" << xpx
 		     << " y_mm=" << ymm << " x_mm=" << xmm << "\n";
-	    }
+*/	    }
 	}
+    }
 
-	remap(picture, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+    const Mat  CreateRoi(const Mat& src)
+    {
+	Mat dst;
+	dst.create(Size(dstSize.width, dstSize.height), CV_8UC3);
+	remap(src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
 	
-	for (int y = 0; y < dstSize.height; y+=10*pxPerMm) 
-	{
-	    line(dst, Point(0, y), Point(dstSize.width, y), Scalar(30, 30, 30));
-	}
-	for (int x = 0; x < dstSize.width; x+=10*pxPerMm) 
-	{
-	    line(dst, Point(x, 0), Point(x, dstSize.height), Scalar(30, 30, 30));
-	}
-	
-
-
 	return dst;
-    };
+    }
+    
+    int GetPxPerMmm() const
+    { return pxPerMm; }
 
+    Size GetSize() const
+    { return dstSize; }
+
+protected:
+
+    int dx;
+    int dy;
+    
+    Mat map_x, map_y;
+    
+    Size dstSize;
+    
+    int pxPerMm;
 
 };

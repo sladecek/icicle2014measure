@@ -98,7 +98,7 @@ public:
 
       namedWindow("test", 1);
       imshow("test", logPicture);
-     waitKey(0);
+//     waitKey(0);
 
     };
 
