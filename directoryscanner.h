@@ -36,10 +36,10 @@ public:
 
 	if (!result.empty())
 	{
-	    int time0_s = result[0].GetAbsouluteTime_s();
+	    int time0_s = result[0].GetAbsoluteTime_s();
 	    for (int i = 1; i < result.size(); i++)
 	    {
-		result[i].SetTime_s(result[i].GetAbsouluteTime_s() - time0_s);
+		result[i].SetTime_s(result[i].GetAbsoluteTime_s() - time0_s);
 	    }
 	}
 

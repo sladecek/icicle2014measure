@@ -41,7 +41,7 @@ Picture(const string& directory_,  const string& file_)
     { mat.release(); }
 
     // Time obtained from file name
-    int GetAbsouluteTime_s() const
+    int GetAbsoluteTime_s() const
     { return absoluteTime_s; }
 
     // Time relative to the first image.

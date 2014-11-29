@@ -1,5 +1,6 @@
 *~
 *.avi
+_tmp
 makemovie
 CMakeCache.txt
 CMakeFiles/*
