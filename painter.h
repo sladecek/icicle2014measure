@@ -32,8 +32,19 @@ Painter(Mat* image_) :
 	}
     }
 
-    void DrawOverlayText(const Picture& picture)
+    Mat CreateAnnotation(const Mat& icicle, const Picture& picture)
     {
+	const int annotationSize = 180;
+	Size icsz = icicle.size();
+	Mat result(icsz.height, icsz.width + annotationSize, CV_8UC3, Scalar(230, 230, 230));
+
+	Rect roi(Point(0, 0), icsz);
+	cerr << "icicle: " << icicle.size() << endl;
+	cerr << "picture: " << picture.GetMat().size() << endl;
+	cerr << "result: " << result.size() << endl;
+	cerr << "roi: " << roi.size() << endl;
+	icicle.copyTo(result(roi));
+	return result;
     }
 protected:
     Mat* image;

@@ -26,7 +26,7 @@ public:
 	map_y.create(dstSize, CV_32FC1 );
 
 	PointSetCalibrator inverseMap;
-	std::cout << calibration.GetCalibration() << "\n";
+//	std::cout << calibration.GetCalibration() << "\n";
 	for (int y = 0; y < 640; y += 100) 
 	{
 	    for (int x = 0; x < 480; x += 100) 
@@ -40,7 +40,7 @@ public:
 	    }
 	}
 	inverseMap.ComputeCalibration();
-	std::cout << inverseMap.GetCalibration() << "\n";
+//	std::cout << inverseMap.GetCalibration() << "\n";
 	for (int y = 0; y < dstSize.height; y++) 
 	{
 	    for (int x = 0; x < dstSize.width; x++) 
@@ -62,10 +62,9 @@ public:
     const Mat  CreateRoi(const Mat& src)
     {
 	Mat dst;
-	dst.create(dstSize, CV_8UC3);
+	dst.create(Size(dstSize.width, dstSize.height), CV_8UC3);
 	remap(src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
 	
-
 	return dst;
     }
     

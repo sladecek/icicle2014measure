@@ -24,8 +24,14 @@ int main(int argc, char** argv)
   
   cerr << "(1) reading " << endl;
   vector<Picture>  rawPictures = DirectoryScanner::ScanDirectory(argv[1]);
+  vector<Picture> tst;
+  for (int i = 0; i < 50; i++)
+  {
+      tst.push_back(rawPictures[i]);
+  }
+
   cerr << "(2) outliers " << endl;
-  vector<Picture> acceptedPictures = OutlierRemover::RemoveOutliers(rawPictures, 1.7, 100);
+  vector<Picture> acceptedPictures = OutlierRemover::RemoveOutliers(tst/*rawPictures*/, 1.7, 100);
   if (acceptedPictures.size() <= 0)
   {
       cerr << "no pictures" << endl;
@@ -48,7 +54,7 @@ int main(int argc, char** argv)
       cerr << "invalid calibration" << endl;
       return 2;
   }
-  cout << "calibration: " << calibrator.GetCalibration() << endl;
+  // cout << "calibration: " << calibrator.GetCalibration() << endl;
 
   cerr << "(x) analysis " << endl;
   cerr << "(5) movie " << endl;
@@ -64,9 +70,11 @@ int main(int argc, char** argv)
 
       Painter painter(&roi);
       painter.DrawGrid(5);
-      painter.DrawOverlayText(pic);
-      movieMaker.AddPicture(roi, i);
- }
+      Mat annotation = painter.CreateAnnotation(roi, pic);
+      movieMaker.AddPicture(annotation, i);
+      if (i % 30 == 0) cerr << "+";
+  }
+  cerr << endl;
 	
   movieMaker.CloseMovie();
   return 0;

@@ -17,6 +17,10 @@ MovieMaker(const string& movieName_, const Size& size)
     {
 	system("rm -rf _tmp");
 	system("mkdir _tmp");
+	char s[1000];
+	sprintf(s, "rm -f %s.avi", movieName.c_str());
+	system(s);
+
     }
 
     virtual ~MovieMaker()
