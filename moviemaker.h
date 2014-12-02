@@ -37,7 +37,8 @@ MovieMaker(const string& movieName_, const Size& size)
     void CloseMovie()
     {
 	char s[1000];
-	sprintf(s, "ffmpeg -f image2 -i _tmp/%%06d.png %s.avi", movieName.c_str());
+
+	sprintf(s, "ffmpeg -framerate 5 -r 25 -f image2 -i _tmp/%%06d.png -vcodec mpeg4 -b 2400k %s.avi", movieName.c_str());
 	system(s);
     }
 

@@ -25,12 +25,7 @@ int main(int argc, char** argv)
   
   cerr << "(1) reading " << endl;
   vector<Picture>  rawPictures = DirectoryScanner::ScanDirectory(argv[1]);
-  vector<Picture> tst;
-/*  for (int i = 0; i < 50; i++)
-  {
-      tst.push_back(rawPictures[i]);
-  }
-*/
+//  rawPictures.resize(30);
   cerr << "(2) outliers " << endl;
   vector<Picture> acceptedPictures = OutlierRemover::RemoveOutliers(rawPictures, 1.7, 100);
   if (acceptedPictures.size() <= 0)
@@ -38,6 +33,8 @@ int main(int argc, char** argv)
       cerr << "no pictures" << endl;
       return 2;      
   }
+
+
 
   cerr << "(3) calibration " << endl;
   const double horizontalDistanceBetweenStrips_mm = 86;
@@ -60,7 +57,7 @@ int main(int argc, char** argv)
   cerr << "(x) analysis " << endl;
   cerr << "(5) movie " << endl;
   Database db("../icicle-data/db02/var/i.db");
-  Experiment* experiment = db.FindExperiment(86);
+  Experiment* experiment = db.FindExperiment(85);
   if (experiment == NULL)
   {
       cerr << "no experiment" << endl;
@@ -70,7 +67,7 @@ int main(int argc, char** argv)
 
 
   Mapper mapper(calibrator, 7, 10, 70, 0, 150);
-  MovieMaker movieMaker("movie.mpg", mapper.GetSize());
+  MovieMaker movieMaker("movie", mapper.GetSize());
   int t0 = experiment->GetStartTime();
 
   for(int i = 0; i < acceptedPictures.size(); i++) 
@@ -78,7 +75,6 @@ int main(int argc, char** argv)
       Picture& pic = acceptedPictures[i];
       pic.OpenImage();
       Mat roi = mapper.CreateRoi(pic.GetMat());
-
 
       Painter painter(&roi);
       painter.DrawGrid(5);

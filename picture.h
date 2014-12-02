@@ -1,5 +1,7 @@
 #include "opencv2/highgui/highgui.hpp"
+#include <iostream>
 using namespace cv;
+using namespace std;
 
 #pragma once
 
@@ -9,7 +11,13 @@ class Picture
 {
 public:
 
-// constructror creates does not read the image
+Picture()
+    :time_s(-1), absoluteTime_s(-1)
+    {
+	int pos = -1;
+    }
+
+// constructror creates but does not read the image
 Picture(const string& directory_,  const string& file_)
     :directory(directory_), file(file_), time_s(-1), absoluteTime_s(-1)
     {
@@ -25,6 +33,7 @@ Picture(const string& directory_,  const string& file_)
     {
       // extract base name - contains time
       string fn = directory + "/" + file;
+//      cerr << "reading " << file << endl;
       mat = imread(fn);
     }
     

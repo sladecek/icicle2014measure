@@ -83,8 +83,24 @@ protected:
         read_json(ss, pt);
 	result->SetId(pt.get<string>("id"));
 
-	string sss = pt.get<string>("s");
-	result->SetPhase(State::String2Phase(sss));
+	string stringPhase = pt.get<string>("s");
+	result->SetStringPhase(stringPhase);
+	result->SetPhase(State::String2Phase(stringPhase));
+	
+	result->SetProfile(pt.get<string>("pr"));
+	result->SetTc(pt.get<string>("Tc"));
+	result->SetTd(pt.get<string>("Td"));
+	result->SetTf(pt.get<string>("Tf"));
+	result->SetTb(pt.get<string>("Tb"));
+	result->SetTw(pt.get<string>("Tw"));
+	result->SetTo(pt.get<string>("To"));
+	result->SetTp(pt.get<string>("Tp"));
+
+
+	result->SetFr(pt.get<string>("fr"));
+	result->SetFt(pt.get<string>("ft"));
+	result->SetHr(pt.get<string>("hr"));
+	result->SetHt(pt.get<string>("ht"));
 
 	return result;
     }

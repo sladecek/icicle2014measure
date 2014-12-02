@@ -36,7 +36,7 @@ Painter(Mat* image_) :
 
     Mat CreateAnnotation(const Mat& icicle, const Picture& picture, const Experiment* ex, int t0)
     {
-	const int annotationSize = 270;
+	const int annotationSize = 300;
 	Size icsz = icicle.size();
 	Mat result(icsz.height, icsz.width + annotationSize, CV_8UC3, Scalar(230, 230, 230));
 
@@ -53,11 +53,27 @@ Painter(Mat* image_) :
 	    const State* s = ex->FindNearestState(picture.GetAbsoluteTime_s());
 	    if (s != NULL)
 	    {
-		std::ostringstream temp;
-		temp << setw(4) << (s->GetTime() - t0) << ends;
 		int x = icsz.width + 20;
-		WriteText(result, temp.str(), x, 40);
-		WriteText(result, s->GetId(), x, 70);
+		int y = 60;
+		WriteInt(result, "t=", (s->GetTime() - t0), x, annotationSize-40, &y, 2);
+		WriteText(result, "id=", ex->GetId(), x, annotationSize-40, &y, 1);
+		WriteInt(result, "ix=", ex->GetIx(), x, annotationSize-40, &y, 1);
+		WriteText(result, "prof=", s->GetProfile(), x, annotationSize-40, &y, 1);
+		y+=10;
+		WriteText(result, "", s->GetStringPhase(), x, annotationSize-40, &y, 1);
+		y+=20;
+		WriteDouble(result, "Tc=", s->GetTc(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "Td=", s->GetTd(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "Tf=", s->GetTf(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "Tb=", s->GetTb(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "Tw=", s->GetTw(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "To=", s->GetTo(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "Tp=", s->GetTp(), x, annotationSize-40, &y, 1);
+		y+=20;
+		WriteText(result, "fr", s->GetFr(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "", s->GetFt(), x, annotationSize-40, &y, 1);
+		WriteText(result, "hr", s->GetHr(), x, annotationSize-40, &y, 1);
+		WriteDouble(result, "", s->GetHt(), x, annotationSize-40, &y, 1);
 	    }
 	}
 	return result;
@@ -65,10 +81,51 @@ Painter(Mat* image_) :
 protected:
     Mat* image;
 
-    void WriteText(Mat& mat, const string& s, int x, int y)
+    void WriteText(Mat& mat, const string& label, const string& text, int x, int width, int* y, double fontScale)
     {
-	putText(mat, s, Point(x, y), FONT_HERSHEY_SIMPLEX, 1, Scalar(250,0,0), 3);
+
+	int fontFace = CV_FONT_HERSHEY_SIMPLEX;
+	int thickness = 3;
+
+	int baseline=0;
+
+	Size textSize = getTextSize(text, fontFace, fontScale, thickness, &baseline);
+	baseline += thickness;
+
+	Point labelOrg(x, *y);
+	Point textOrg(x - textSize.width + width, *y);
+
+	const double labelFontScale = 1;
+	putText(mat, label, labelOrg, fontFace, labelFontScale,
+		Scalar::all(0), thickness, 8);
+
+	putText(mat, text, textOrg, fontFace, fontScale,
+		Scalar::all(0), thickness, 8);
+
+	*y += textSize.height + 5;
+
+
+
     }
 
+    void WriteInt(Mat& mat, const string& label, int v, int x, int width, int* y, double fontScale)
+    {
+	std::ostringstream temp;
+	temp << v << ends;
+	WriteText(mat, label, temp.str(), x, width, y, fontScale);
+    }
+
+    void WriteDouble(Mat& mat, const string& label, double v, int x, int width, int* y, double fontScale)
+    {
+	string txt;
+	
+	if (!isnan(v)) 
+	{
+	    std::ostringstream temp;
+	    temp << setw(7) << fixed << setprecision( 2 ) << v << ends;
+	    txt = temp.str();
+	}
+	WriteText(mat, label, txt, x, width, y, fontScale);
+    }
 
 };
