@@ -6,6 +6,7 @@
 #include "mapper.h"
 #include "painter.h"
 #include "database.h"
+#include "colorspaceconvertor.h"
 #include <iostream>
 
 
@@ -54,7 +55,14 @@ int main(int argc, char** argv)
   }
   // cout << "calibration: " << calibrator.GetCalibration() << endl;
 
-  cerr << "(x) analysis " << endl;
+  cerr << "(4) analysis " << endl;
+  ColorSpaceConvertor csconv;
+
+  vector<Picture> firstPictures;
+  copy ( acceptedPictures.begin(), acceptedPictures.begin() + 12, std::back_inserter(firstPictures) );
+
+  csconv.CalibrateBackground(firstPictures);
+
   cerr << "(5) movie " << endl;
   Database db("../icicle-data/db02/var/i.db");
   Experiment* experiment = db.FindExperiment(85);
@@ -72,16 +80,33 @@ int main(int argc, char** argv)
 
   for(int i = 0; i < acceptedPictures.size(); i++) 
   {
-      Picture& pic = acceptedPictures[i];
-      pic.OpenImage();
-      Mat roi = mapper.CreateRoi(pic.GetMat());
+      Picture raw = acceptedPictures[i];
+      raw.OpenImage();
 
+      //Mat pic = raw.GetMat(); //csconv.transformMatrix(raw.GetMat());
+      Mat pic = csconv.transformMatrix(raw.GetMat());
+      {
+      Mat roi = mapper.CreateRoi(pic);
+      {
       Painter painter(&roi);
       painter.DrawGrid(5);
-      Mat annotation = painter.CreateAnnotation(roi, pic, experiment, t0);
-      movieMaker.AddPicture(annotation, i);
+      Mat annotation = painter.CreateAnnotation(roi, raw, experiment, t0);
+      {movieMaker.AddPicture(annotation, i);
       if (i % 30 == 0) cerr << "+";
-      pic.CloseImage();
+
+
+      raw.CloseImage();
+
+
+      }
+
+
+      }
+
+
+      }
+
+
   }
   cerr << endl;
 
