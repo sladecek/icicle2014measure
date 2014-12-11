@@ -3,6 +3,7 @@
 #include "outlierremover.h"
 #include "redstripcalibrator.h"
 #include "moviemaker.h"
+#include "matlabexport.h"
 #include "mapper.h"
 #include "painter.h"
 #include "database.h"
@@ -76,6 +77,8 @@ int main(int argc, char** argv)
 
   Mapper mapper(calibrator, 7, 10, 70, 0, 150);
   MovieMaker movieMaker("movie", mapper.GetSize());
+  MatlabExport matlab("icicle");
+
   int t0 = experiment->GetStartTime();
 
   for(int i = 0; i < acceptedPictures.size(); i++) 
@@ -83,34 +86,20 @@ int main(int argc, char** argv)
       Picture raw = acceptedPictures[i];
       raw.OpenImage();
 
-      //Mat pic = raw.GetMat(); //csconv.transformMatrix(raw.GetMat());
       Mat pic = csconv.transformMatrix(raw.GetMat());
-      {
       Mat roi = mapper.CreateRoi(pic);
-      {
       Painter painter(&roi);
       painter.DrawGrid(5);
       Mat annotation = painter.CreateAnnotation(roi, raw, experiment, t0);
-      {movieMaker.AddPicture(annotation, i);
+      movieMaker.AddPicture(annotation, i);
+      matlab.Export(roi, i, acceptedPictures[i].GetTime_s());
       if (i % 30 == 0) cerr << "+";
-
-
       raw.CloseImage();
-
-
-      }
-
-
-      }
-
-
-      }
-
-
   }
   cerr << endl;
 
   movieMaker.CloseMovie();
+  matlab.Close();
   return 0;
 }
 // --------------------------------------------------------------------------------
