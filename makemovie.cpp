@@ -74,9 +74,9 @@ int main(int argc, char** argv)
 
   }
 
-
-  Mapper mapper(calibrator, 7, 10, 70, 0, 150);
-  MovieMaker movieMaker("movie", mapper.GetSize());
+  const int pxPerMmm = 2; // 7;
+  Mapper mapper(calibrator, pxPerMmm, 10, 70, 0, 150);
+//  MovieMaker movieMaker("movie", mapper.GetSize());
   MatlabExport matlab("icicle");
 
   int t0 = experiment->GetStartTime();
@@ -88,17 +88,19 @@ int main(int argc, char** argv)
 
       Mat pic = csconv.transformMatrix(raw.GetMat());
       Mat roi = mapper.CreateRoi(pic);
-      Painter painter(&roi);
+      matlab.Export(roi, i, acceptedPictures[i].GetTime_s());
+
+/*      Painter painter(&roi);
       painter.DrawGrid(5);
       Mat annotation = painter.CreateAnnotation(roi, raw, experiment, t0);
       movieMaker.AddPicture(annotation, i);
-      matlab.Export(roi, i, acceptedPictures[i].GetTime_s());
+*/
       if (i % 30 == 0) cerr << "+";
       raw.CloseImage();
   }
   cerr << endl;
 
-  movieMaker.CloseMovie();
+//  movieMaker.CloseMovie();
   matlab.Close();
   return 0;
 }
