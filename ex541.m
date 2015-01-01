@@ -10,8 +10,8 @@ st = size(da)(1)/sx/sy;
 d = reshape(da, sy, sx, st);
 
 % --- debug - make movie smaller ------------------------------------------------------
-if false
-d=d(1:20:end, 1:20:end, 1:120:end);
+if true
+d=d(1:5:end, 1:5:end, 1:40:end);
 iis = size(d)
 sy = iis(1)
 sx = iis(2)
@@ -20,8 +20,8 @@ endif
 % --------------------------------------------------------------------------------------
 
 w=reshape(sum(d,2),sy,st);
-p = 500;
-lambda = 5000;
+p = 3000;
+lambda = 0;
 size(w)
 
 theta0 = [0 1 0 0]';
@@ -53,10 +53,10 @@ g1 = sum(+(l >= 0))*pp';
 
 J2 = sum(v(lix));
 g2 = zeros(size(theta));
-g2(1) = -sum(w(lix));
-g2(2) = -sum(wt(lix));
-g2(3) = -sum(wtt(lix));
-g2(4) = -sum(wttt(lix));
+g2(1) = -sum(w(lix))*sy;
+g2(2) = -sum(wt(lix))*sy;
+g2(3) = -sum(wtt(lix))*sy;
+g2(4) = -sum(wttt(lix))*sy;
 
 
 temp = theta;
@@ -71,12 +71,14 @@ endfunction
 % --------------------------------------------------------------------------------------
 
 if true
-options = optimset('GradObj', 'off', 'MaxIter', 500);
-[theta] = fmincg (@(t)(costFunction(t, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, 1, 1, 1)), theta0, options);
+options = optimset('GradObj', 'on', 'MaxIter', 50);
+[theta] = fminunc (@(t)(costFunction(t, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, 1, 1, 1)), theta0, options);
 theta
+plot(tax*theta)
 endif
 
 % -debug plot cost function ------------------------------------------------------------
+if false
 nn0 = 30;
 nn1 = 30;
 th0 = linspace(-2, 1, nn0);
@@ -95,5 +97,26 @@ meshc(th0, th1, pl);
 xlabel("theta_0");
 ylabel("theta_1");
 title("cost function");
+endif
 % --------------------------------------------------------------------------------------
 
+% -validate gradient computation -----------------------------------------------
+if false
+th0 = [0 1 0 0]';
+dbg0 = 0
+dbg1 = 1
+dbg2 = 0
+delta = 0.01
+
+[J,g] = costFunction(th0, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, dbg0, dbg1, dbg2);
+for i=1:4
+ th = th0;
+ th(i) = th(i) + delta;
+ Jplus = costFunction(th, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, dbg0, dbg1, dbg2)
+ th = th0;
+ th(i) = th(i) - delta;
+ Jminus = costFunction(th, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, dbg0, dbg1, dbg2)
+ g2 = (Jplus - Jminus) / (2*delta)
+ g(i)
+endfor
+endif
