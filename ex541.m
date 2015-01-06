@@ -8,6 +8,7 @@ sy = icicle_size(1);
 sx = icicle_size(2);
 st = size(da)(1)/sx/sy;
 d = reshape(da, sy, sx, st);
+mu = mean(da(1:sy*sx*10))
 
 % --- debug - make movie smaller ------------------------------------------------------
 if true
@@ -20,8 +21,7 @@ endif
 % --------------------------------------------------------------------------------------
 
 w=reshape(sum(d,2),sy,st);
-p = 3000;
-lambda = 0;
+lambda = 3000;
 size(w)
 
 theta0 = [0 1 0 0]';
@@ -37,7 +37,7 @@ wt = w .* tix;
 wtt = w .* ttix;
 wttt = w .* tttix;
 
-pp = p * [1, 1/2, 1/3, 1/4];
+pp = mu * 3 * [1, 1/2, 1/3, 1/4];
 
 % --------------------------------------------------------------------------------------
 function [J, grad] = costFunction(theta, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, dbg1, dbg2, dbg3)
@@ -47,8 +47,8 @@ l=min(1,max(0,tax * theta));
 li=min(sy,max(1,round(sy*l)));
 lix=[0:(st-1)]*sy+li';
 
-J1 = pp(1) * sum(l);
-g1 = sum(+(l >= 0))*pp';
+J1 = pp(1) * (1-sum(l));
+g1 = -sum(+(l >= 0))*pp';
 
 
 J2 = sum(v(lix));
@@ -78,7 +78,7 @@ plot(tax*theta)
 endif
 
 % -debug plot cost function ------------------------------------------------------------
-if false
+if true
 nn0 = 30;
 nn1 = 30;
 th0 = linspace(-2, 1, nn0);
@@ -90,7 +90,7 @@ for t0=1:nn0
    theta = zeros(4,1);
    theta(1) = th0(t0);
    theta(2) = th1(t1);
-   pl(t0,t1) = costFunction(theta, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, 1, 1, 1);
+   pl(t0,t1) = costFunction(theta, lambda, pp, tax, sy, st, v, w, wt, wtt, wttt, 1, 0, 0);
 endfor
 endfor
 meshc(th0, th1, pl);
