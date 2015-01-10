@@ -10,7 +10,7 @@ st = size(da)(1)/sx/sy;
 d = reshape(da, sy, sx, st);
 
 % --- debug - make movie smaller ------------------------------------------------------
-if true
+if false
 %d=d(1:20:end, 1:20:end, 1:120:end);
 d=d(1:5:end, 1:5:end, 1:30:end);
 iis = size(d)
@@ -20,10 +20,12 @@ st = iis(3)
 endif
 % --------------------------------------------------------------------------------------
 
-ww=reshape(sum(d,2),sy,st);
-penalty = mean(mean(ww(:,1:3)));
+www=reshape(sum(d,2),sy,st);
+penalty0 = mean(mean(www(:,1:3)));
+ww = min(2*penalty0,www);
+penalty = mean(mean(ww));
 w = ww - penalty;
-lambda = 30 * sx*sy*st;
+lambda = 1 * sx*sy*st;
 
 theta0 = [0 1 0 0]';
 
@@ -78,8 +80,25 @@ endif
 % -debug plot cost function ------------------------------------------------------------
 if false
 nn0 = 30;
+th0 = linspace(-2, 2, nn0);
+
+pl=zeros(nn0);
+for t0=1:nn0
+   theta = zeros(4,1);
+   theta(1) = th0(t0);
+   pl(t0) = costFunction(theta, lambda,  tax, sy, st, v, w, wt, wtt, wttt);
+endfor
+plot(th0, pl);
+ylabel("theta_0");
+title("cost function");
+endif
+% --------------------------------------------------------------------------------------
+
+% -debug plot cost function ------------------------------------------------------------
+if false
+nn0 = 30;
 nn1 = 30;
-th0 = linspace(-2, 1, nn0);
+th0 = linspace(-2, 2, nn0);
 th1 = linspace(-1, 2, nn1);
 
 pl=zeros(nn0,nn1);
@@ -97,6 +116,7 @@ ylabel("theta_0");
 title("cost function");
 endif
 % --------------------------------------------------------------------------------------
+
 
 % -validate gradient computation -----------------------------------------------
 if false
