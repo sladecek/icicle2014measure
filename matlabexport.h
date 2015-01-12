@@ -14,8 +14,10 @@ public:
 MatlabExport(const string& fileNamePrefix_) 
     : fileNamePrefix(fileNamePrefix_), headerDone(false)
     {
-	string f = fileNamePrefix + ".dat";
-	fs.open(f.c_str(), ofstream::binary);
+	string fData = fileNamePrefix + ".dat";
+	dataFile.open(fData.c_str(), ofstream::binary);
+	string fTime = fileNamePrefix + "_time.txt";
+	timeFile.open(fTime.c_str(), iostream::out);
     }
 
     virtual ~MatlabExport()
@@ -39,19 +41,23 @@ MatlabExport(const string& fileNamePrefix_)
 	    headerDone = true;
 	}
 	writePicture(picture);
+	timeFile << time << " ";
     }
 
 
     void Close()
     {
-	fs.close();
+	timeFile << endl;
+	timeFile.close();
+	dataFile.close();
     }
 
 protected:
     string fileNamePrefix;
     bool headerDone;
     Size firstPictureSize;
-    ofstream fs;
+    ofstream dataFile;
+    ofstream timeFile;
 
     void writeHeader(Size size)
     {
@@ -71,7 +77,7 @@ protected:
 	    for (int y = 0; y < s.height; y++) 
 	    {
 		uchar b = picture.at<Vec3b>(y, x)[0];
-		fs.write((const char*)&b, 1);
+		dataFile.write((const char*)&b, 1);
 	    }
 	}
     }

@@ -9,6 +9,9 @@ sx = icicle_size(2);
 st = size(da)(1)/sx/sy;
 d = reshape(da, sy, sx, st);
 
+load("-ascii","icicle_time.txt");
+iti=icicle_time - icicle_time(1);
+tix = iti / max(iti);
 % --- debug - make movie smaller ------------------------------------------------------
 if false
 %d=d(1:20:end, 1:20:end, 1:120:end);
@@ -30,7 +33,7 @@ kappa = 0*sx*sy*st;
 
 theta0 = [0 1 0 0]';
 
-tix = linspace(0,1,st);
+
 ttix = tix.*tix;
 tttix = ttix.*tix;
 tax = [ones(st,1), tix', ttix', tttix'];
@@ -76,8 +79,21 @@ endfunction
 if true
 options = optimset('GradObj', 'on', 'MaxIter', 50);
 [theta] = fminunc (@(t)(costFunction(t, lambda, kappa,  tax, sy, st, v, w, wt, wtt, wttt)), theta0, options);
-theta
-plot(tax*theta)
+
+icicle_length=min(1,max(0,tax * theta));
+save("-ascii","icicle_length.txt", "icicle_length");
+
+l1 = [0; icicle_length];
+l2 = [icicle_length; icicle_length(end)];
+t1 = [0; tix'];
+t2 = [tix'; 1];
+icicle_speed = ((l2-l1)./(t2-t1))(1:st);
+plot(icicle_speed);
+save("-ascii","icicle_speed.txt", "icicle_speed");
+
+
+
+% plot(l)
 endif
 
 % -debug plot cost function ------------------------------------------------------------
