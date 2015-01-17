@@ -4,6 +4,7 @@
 #include "redstripcalibrator.h"
 #include "moviemaker.h"
 #include "matlabexport.h"
+#include "matlabimport.h"
 #include "mapper.h"
 #include "painter.h"
 #include "database.h"
@@ -96,29 +97,44 @@ int main(int argc, char** argv)
 
   matlab.Close();
 
-  if (false)
-  {
+  cerr << "(6) running octave script " << endl;
+  system("octave icicle_measure.m");
 
-  cerr << "(7) movie " << endl;
+  cerr << "(7) importing octave results " << endl;
 
+  vector<double> ile = MatlabImport("icicle_length.txt").Load();
+  vector<double> isp = MatlabImport("icicle_speed.txt").Load();
+
+
+  const int pxPerMmmMovie = 7;
+  Mapper mapperMovie(calibrator, pxPerMmmMovie, 10, 70, 0, 150);
+  double maxTime_h = acceptedPictures[acceptedPictures.size()-1].GetTime_s() / 3600.0;
+
+  cerr << "(8) movie " << endl;
+  MovieMaker movieMaker("movie", mapperMovie.GetSize());
   for(int i = 0; i < acceptedPictures.size(); i++) 
   {
       Picture raw = acceptedPictures[i];
       raw.OpenImage();
 
-      Mat pic = csconv.transformMatrix(raw.GetMat());
-      Mat roi = mapper.CreateRoi(pic);
+      Mat roi = mapperMovie.CreateRoi(raw.GetMat());
+
+      int icicle_length_px = floor(ile[i]*mapperMovie.GetSize().height * mapperMovie.GetPxPerMmm());
+      double icicle_length_mm = ile[i]*mapperMovie.GetSize().height ;
+      double icicle_speed_mm_h = isp[i]*mapperMovie.GetSize().height /  maxTime_h;
 
       Painter painter(&roi);
       painter.DrawGrid(5);
-      Mat annotation = painter.CreateAnnotation(roi, raw, experiment, t0);
+      painter.DrawLine(icicle_length_mm);
+      Mat annotation = painter.CreateAnnotation(roi, raw, experiment, t0, 
+						icicle_length_mm, icicle_speed_mm_h);
       movieMaker.AddPicture(annotation, i);
       if (i % 30 == 0) cerr << "+";
       raw.CloseImage();
   }
   cerr << endl;
   movieMaker.CloseMovie();
-  }
+
 
 
 

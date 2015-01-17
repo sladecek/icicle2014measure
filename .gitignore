@@ -9,3 +9,6 @@ cmake_install.cmake
 icicle.dat
 icicle_size.txt
 octave-core
+icicle_length.txt
+icicle_speed.txt
+icicle_time.txt

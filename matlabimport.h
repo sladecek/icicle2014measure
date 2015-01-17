@@ -19,11 +19,17 @@ MatlabImport(const string& fileName)
     virtual ~MatlabImport()
     {}
 
-    Mat Load()
+    vector<double> Load()
     {
-	return Mat();
+	vector<double> result;
+	double d = 0;
+	while(file >> d)
+	{
+	    result.push_back(d);
+	}
+	cout << result.size() << endl;
+	return result;
     }
-
 
 protected:
     ifstream file;

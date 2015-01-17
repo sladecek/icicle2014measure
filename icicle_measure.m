@@ -1,5 +1,4 @@
 % icicle length from movie
-% experiment 541
 % --------------------------------------------------------------------------------------
 f=fopen("icicle.dat", "r");
 da = fread(f, Inf, "uchar");
@@ -88,6 +87,7 @@ l2 = [icicle_length; icicle_length(end)];
 t1 = [0; tix'];
 t2 = [tix'; 1];
 icicle_speed = ((l2-l1)./(t2-t1))(1:st);
+icicle_speed(!isfinite(icicle_speed)) = 0;
 plot(icicle_speed);
 save("-ascii","icicle_speed.txt", "icicle_speed");
 

@@ -34,7 +34,15 @@ Painter(Mat* image_) :
 	}
     }
 
-    Mat CreateAnnotation(const Mat& icicle, const Picture& picture, const Experiment* ex, int t0)
+    void DrawLine(int y_px) 
+    {
+	int w = image->size().width;
+	line(*image, Point(0, y_px), Point(w, y_px), Scalar(30, 0, 0));
+    }
+
+
+    Mat CreateAnnotation(const Mat& icicle, const Picture& picture, const Experiment* ex, int t0,
+						double icicle_length_mm, double icicle_speed_mm_h)
     {
 	const int annotationSize = 300;
 	Size icsz = icicle.size();
@@ -74,6 +82,9 @@ Painter(Mat* image_) :
 		WriteDouble(result, "", s->GetFt(), x, annotationSize-40, &y, 1);
 		WriteText(result, "hr", s->GetHr(), x, annotationSize-40, &y, 1);
 		WriteDouble(result, "", s->GetHt(), x, annotationSize-40, &y, 1);
+		y+=20;
+		WriteDouble(result, "il=", icicle_length_mm, x, annotationSize-40, &y, 1);
+		WriteDouble(result, "is=", icicle_speed_mm_h, x, annotationSize-40, &y, 1);
 	    }
 	}
 	return result;
